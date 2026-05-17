@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SleeepScope — DreamWare</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#050a08;--bg2:#0a110e;
+  --green:#00ff88;--green-dim:#00ff8833;--green-muted:#00c46a;
+  --text:#a8d4bb;--text-dim:#4a7a60;
+  --red:#ff3c3c;--amber:#ffcc00;
+  --mono:'Share Tech Mono',monospace;--sans:'Rajdhani',sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,0.015) 2px,rgba(0,255,136,0.015) 4px);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 24px 80px;}
+header{border-bottom:1px solid var(--green-dim);padding:32px 0 20px;display:flex;justify-content:space-between;align-items:flex-end;}
+.logo{font-family:var(--sans);font-size:28px;font-weight:600;letter-spacing:0.12em;color:var(--green);text-transform:uppercase;}
+.logo span{color:var(--text-dim);font-weight:300;font-size:13px;display:block;letter-spacing:0.3em;margin-top:2px;}
+.status-bar{font-size:11px;color:var(--text-dim);text-align:right;line-height:1.7;}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
+nav{display:flex;border-bottom:1px solid var(--green-dim);margin-bottom:40px;}
+nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:var(--mono);font-size:12px;letter-spacing:0.15em;padding:12px 20px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;margin-bottom:-1px;}
+nav button:hover{color:var(--green);}
+nav button.active{color:var(--green);border-bottom-color:var(--green);}
+.page{display:none;}
+.page.active{display:block;animation:fadeIn 0.3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.section-label{font-size:10px;letter-spacing:0.4em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;}
+h1{font-family:var(--sans);font-size:42px;font-weight:600;color:var(--green);letter-spacing:0.05em;line-height:1.1;margin-bottom:20px;}
+h2{font-family:var(--sans);font-size:22px;font-weight:600;color:var(--text);margin-bottom:12px;}
+p{font-size:13px;line-height:1.8;color:var(--text-dim);margin-bottom:16px;}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:40px;}
+.info-panel{border:1px solid var(--green-dim);padding:20px;background:rgba(0,255,136,0.02);font-size:12px;line-height:2;}
+.info-panel .row{display:flex;justify-content:space-between;border-bottom:1px solid rgba(0,255,136,0.08);padding:4px 0;}
+.info-panel .row:last-child{border-bottom:none;}
+.info-panel .label{color:var(--text-dim);}
+.info-panel .val{color:var(--green-muted);}
+.redacted{background:var(--text-dim);color:transparent;border-radius:2px;user-select:none;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0;}
+.card{border:1px solid var(--green-dim);padding:16px;background:rgba(0,255,136,0.01);}
+.card-num{font-family:var(--sans);font-size:32px;font-weight:300;color:var(--green);display:block;margin-bottom:4px;}
+.card-label{font-size:10px;letter-spacing:0.3em;color:var(--text-dim);text-transform:uppercase;}
+.divider{border:none;border-top:1px solid var(--green-dim);margin:32px 0;}
+.about-block{margin-bottom:28px;}
+.glitch{position:relative;display:inline-block;}
+.glitch::after{content:attr(data-text);position:absolute;left:2px;top:0;color:var(--red);clip-path:inset(0 0 60% 0);animation:glitch 4s infinite;opacity:0;}
+@keyframes glitch{0%,89%,100%{opacity:0;}90%{opacity:0.7;left:3px;clip-path:inset(30% 0 50% 0);}91%{opacity:0.4;left:-2px;clip-path:inset(60% 0 10% 0);}92%{opacity:0;}}
+
+/* LOGIN */
+.login-shell{max-width:400px;margin:0 auto;border:1px solid var(--green-dim);background:var(--bg2);padding:32px 28px 28px;}
+.login-title{font-family:var(--sans);font-size:18px;font-weight:600;color:var(--text);letter-spacing:0.1em;text-align:center;margin-bottom:4px;text-transform:uppercase;}
+.login-sub{font-size:10px;letter-spacing:0.3em;color:var(--text-dim);text-align:center;margin-bottom:28px;}
+.field-group{margin-bottom:20px;}
+.field-label{font-size:10px;letter-spacing:0.3em;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;display:block;}
+.char-row{display:flex;gap:8px;justify-content:center;}
+.char-box{width:48px;height:56px;background:rgba(0,255,136,0.03);border:1px solid var(--green-dim);color:var(--green);font-family:var(--mono);font-size:20px;text-align:center;text-transform:uppercase;outline:none;caret-color:transparent;transition:border-color 0.15s,background 0.15s;}
+.char-box:focus{border-color:var(--green);background:rgba(0,255,136,0.07);}
+.char-box.filled{border-color:var(--green-muted);}
+.char-box.error{border-color:var(--red);animation:shake 0.3s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.login-btn{width:100%;background:none;border:1px solid var(--green-dim);color:var(--green-muted);font-family:var(--mono);font-size:12px;letter-spacing:0.25em;padding:12px;cursor:pointer;text-transform:uppercase;transition:all 0.2s;margin-top:8px;}
+.login-btn:hover{background:rgba(0,255,136,0.05);border-color:var(--green);color:var(--green);}
+.login-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.login-msg{font-size:11px;text-align:center;min-height:20px;margin-top:16px;letter-spacing:0.1em;}
+.login-msg.err{color:var(--red);}
+.login-msg.ok{color:var(--green);}
+.login-msg.dim{color:var(--text-dim);}
+.attempts-bar{display:flex;gap:6px;justify-content:center;margin-top:12px;}
+.pip{width:8px;height:8px;border:1px solid var(--text-dim);border-radius:50%;}
+.pip.used{background:var(--red);border-color:var(--red);}
+
+/* REVEAL PANELS */
+.reveal-panel{display:none;margin-top:32px;border:1px solid var(--green);background:rgba(0,255,136,0.02);padding:24px;animation:fadeIn 0.5s ease;}
+.reveal-panel.show{display:block;}
+.reveal-label{font-size:10px;letter-spacing:0.4em;color:var(--green);text-transform:uppercase;margin-bottom:16px;}
+.reveal-panel img,.reveal-panel video{width:100%;display:block;margin-bottom:12px;border:1px solid var(--green-dim);}
+.reveal-panel audio{width:100%;margin-bottom:12px;filter:invert(1) hue-rotate(90deg);}
+.media-placeholder{width:100%;aspect-ratio:16/9;background:#0a0f0c;border:1px dashed var(--text-dim);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--text-dim);font-size:11px;letter-spacing:0.2em;margin-bottom:12px;}
+.media-placeholder big{font-size:32px;}
+.lore-text{font-size:12px;color:var(--text-dim);line-height:1.9;font-style:italic;border-left:2px solid var(--green-dim);padding-left:16px;margin-top:12px;}
+
+footer{border-top:1px solid var(--green-dim);padding:20px 0;font-size:10px;color:var(--text-dim);letter-spacing:0.2em;display:flex;justify-content:space-between;margin-top:40px;}
+@media(max-width:600px){.hero-grid{grid-template-columns:1fr;}.grid-3{grid-template-columns:1fr;}h1{font-size:28px;}.char-box{width:40px;height:48px;font-size:17px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="logo">SleeepScope <span>Memory Therapeutics Division</span></div>
+    </div>
+    <div class="status-bar">
+      <div><span class="status-dot"></span>SYSTEM ONLINE</div>
+      <div>DreamWare v0.7.4 — LEGACY BUILD</div>
+      <div>CLEARANCE: PUBLIC</div>
+    </div>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showPage('home',this)">Overview</button>
+    <button onclick="showPage('software',this)">The Software</button>
+    <button onclick="showPage('portal',this)">Employee Portal</button>
+    <button onclick="showPage('contact',this)">Contact</button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════
+       HOME
+  ════════════════════════════════════════════════════ -->
+  <div class="page active" id="page-home">
+    <div class="section-label">Company Overview</div>
+    <h1><span class="glitch" data-text="SleeepScope">SleeepScope</span></h1>
+
+    <div class="hero-grid">
+      <div>
+        <p>SleeepScope is a privately-funded memory therapeutics company operating at the intersection of neuroscience, cognitive recovery, and proprietary software engineering.</p>
+        <p>Our mission is simple: <em style="color:var(--text)">to heal the mind from the inside.</em> Using our flagship technology, DreamWare, trained specialists infiltrate the subconscious of patients with severe psychological conditions — navigating their memories directly, reading what the mind cannot verbalize, and treating what conventional medicine cannot reach.</p>
+        <p>Think of it as surgery. Except the operating table is the patient's own memory, and the instruments are <span class="redacted">classified</span>.</p>
+      </div>
+      <div class="info-panel">
+        <div class="row"><span class="label">SOFTWARE</span><span class="val">DreamWare v0.7.4</span></div>
+        <div class="row"><span class="label">BUILD TYPE</span><span class="val">LEGACY / INTERNAL</span></div>
+        <div class="row"><span class="label">ACTIVE PATIENTS</span><span class="val"><span class="redacted">██</span> ENROLLED</span></div>
+        <div class="row"><span class="label">SPECIALISTS ON DUTY</span><span class="val">3 / <span class="redacted">█</span></span></div>
+        <div class="row"><span class="label">MEMORY ARCHIVES</span><span class="val">2,341 FILES</span></div>
+        <div class="row"><span class="label">LAST SESSION</span><span class="val" style="color:var(--amber)">ONGOING</span></div>
+        <div class="row"><span class="label">ANOMALY FLAG</span><span class="val" style="color:var(--red)">ACTIVE</span></div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card"><span class="card-num"><span class="redacted">██</span></span><span class="card-label">Patients Treated</span></div>
+      <div class="card"><span class="card-num" style="color:var(--amber)">7</span><span class="card-label">Unresolved Cases</span></div>
+      <div class="card"><span class="card-num" style="color:var(--red)">1</span><span class="card-label">Active Incident</span></div>
+    </div>
+
+    <p style="font-size:11px;color:var(--text-dim);border-top:1px solid var(--green-dim);padding-top:16px;">SleeepScope does not publicly disclose its patient roster, methodology, or internal findings. All operations are conducted under full legal confidentiality agreements. If you are not an authorized employee, you should not be on this page.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SOFTWARE
+  ════════════════════════════════════════════════════ -->
+  <div class="page" id="page-software">
+    <div class="section-label">Technology Overview</div>
+    <h2>What is DreamWare?</h2>
+
+    <p>DreamWare is a proprietary operating environment developed internally at SleeepScope. It does not run on conventional hardware in a conventional sense. Rather, it interfaces directly with the neurological activity of a sedated patient and renders their subconscious as a navigable file system.</p>
+    <p>To the specialist, it looks like an old computer. Folders. Files. A cursor. A blinking prompt. Simple, by design — the complexity is entirely on the other side of the screen.</p>
+
+    <hr class="divider">
+
+    <div class="about-block">
+      <div class="section-label">How it works — simplified</div>
+      <h2>Memory as Data</h2>
+      <p>The DreamWare interface translates a patient's subconscious memories into readable files and navigable directories. A childhood home becomes a folder. A suppressed trauma becomes a locked archive. A recurring nightmare becomes a corrupted file the system cannot open — yet.</p>
+      <p>Your job as a SleeepScope specialist is to explore, read, and where necessary, <span class="redacted">modify</span> what you find. Treatment is not always gentle. Some doors are locked for a reason.</p>
+    </div>
+
+    <div class="about-block">
+      <div class="section-label">Patient Profile — Clearance Required</div>
+      <h2>The Subjects</h2>
+      <p>Patients enrolled in the DreamWare program present with conditions that resist conventional diagnosis. Dissociative states. Memories of places that do not exist. Voices belonging to no known language. In every case, something resides in the mind that should not be there.</p>
+      <p style="color:var(--red);font-size:12px;">[ Full patient dossiers restricted. Use the Employee Portal to access your assigned case files. ]</p>
+    </div>
+
+    <div class="about-block">
+      <div class="section-label">Internal Notice — All Staff</div>
+      <h2>Regarding the <span class="redacted">████████</span> Incident</h2>
+      <p>As of <span class="redacted">██/██/20██</span>, access to Patient <span class="redacted">███</span>'s memory archive has been suspended. Specialists who were active during the <span class="redacted">night session</span> are asked to report to <span class="redacted">Room 4</span> before their next shift. Do not discuss what you saw with other staff members.</p>
+      <p style="color:var(--amber);font-size:12px;">This is not optional.</p>
+    </div>
+
+    <hr class="divider">
+    <p style="font-size:11px;color:var(--text-dim);">For access to active case files, session logs, and archived memory exports, log in via the Employee Portal. Your credentials were issued at onboarding. If you have lost them — you were told not to.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       PORTAL / LOGIN
+  ════════════════════════════════════════════════════ -->
+  <div class="page" id="page-portal">
+    <div class="section-label">Restricted Access</div>
+    <h2 style="margin-bottom:6px;">Employee Portal</h2>
+    <p style="margin-bottom:32px;">Access your assigned patient files, session logs, and memory archives. Your login credentials were provided during onboarding. Do not share them.</p>
+
+    <div class="login-shell">
+      <div class="login-title">DreamWare</div>
+      <div class="login-sub">SleeepScope Internal — Staff Login</div>
+
+      <div class="field-group">
+        <span class="field-label">Employee ID</span>
+        <div class="char-row" id="row-alpha"></div>
+      </div>
+
+      <div class="field-group">
+        <span class="field-label">Access PIN</span>
+        <div class="char-row" id="row-num"></div>
+      </div>
+
+      <button class="login-btn" id="login-btn" onclick="submitLogin()">Access Files</button>
+      <div class="login-msg dim" id="login-msg">Enter your credentials to continue.</div>
+      <div class="attempts-bar" id="pip-bar"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         REVEAL PANELS
+         To add a new panel: copy one of these blocks,
+         change the id to reveal-D (or E, F, etc.),
+         then add the matching code to the CODES object
+         in the <script> below.
+
+         To show an image:  <img src="yourfile.jpg">
+         To show a video:   <video src="yourfile.mp4" controls></video>
+         To show audio:     <audio src="yourfile.mp3" controls></audio>
+
+         Put your media files in the same folder as index.html.
+    ════════════════════════════════════════════════ -->
+
+    <div class="reveal-panel" id="reveal-A">
+      <div class="reveal-label">// Case File Unlocked — Patient Dossier</div>
+      <!-- REPLACE THE PLACEHOLDER BELOW WITH YOUR CONTENT -->
+      <div class="media-placeholder">
+        <big>🖼</big>
+        <span>[ IMAGE — replace with: &lt;img src="yourimage.png"&gt; ]</span>
+      </div>
+      <div class="lore-text">"Patient presented with no prior history of psychological disturbance. Admitted voluntarily. On the third session, DreamWare returned an error our engineers had never seen before: <em>FOREIGN MEMORY DETECTED. HOST ORIGIN: UNKNOWN.</em> We proceeded anyway."</div>
+    </div>
+
+    <div class="reveal-panel" id="reveal-B">
+      <div class="reveal-label">// Session Recording — Night Shift Log</div>
+      <!-- REPLACE THE PLACEHOLDER BELOW WITH YOUR CONTENT -->
+      <div class="media-placeholder">
+        <big>▶</big>
+        <span>[ VIDEO — replace with: &lt;video src="yourvideo.mp4" controls&gt;&lt;/video&gt; ]</span>
+      </div>
+      <div class="lore-text">"The specialist on duty that night filed no written report. When asked why, she said she didn't know how to describe what the files contained. She has not returned to work since."</div>
+    </div>
+
+    <div class="reveal-panel" id="reveal-C">
+      <div class="reveal-label">// Memory Export — Audio Fragment</div>
+      <!-- REPLACE THE PLACEHOLDER BELOW WITH YOUR CONTENT -->
+      <div class="media-placeholder">
+        <big>♪</big>
+        <span>[ AUDIO — replace with: &lt;audio src="youraudio.mp3" controls&gt;&lt;/audio&gt; ]</span>
+      </div>
+      <div class="lore-text">"This file was extracted automatically by DreamWare during a session that had already been terminated. The patient was not connected. The session should not have been running. We do not know who — or what — generated this recording."</div>
+    </div>
+
+    <!-- ADD MORE PANELS HERE (copy a block above, change id to reveal-D, etc.) -->
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       CONTACT
+  ════════════════════════════════════════════════════ -->
+  <div class="page" id="page-contact">
+    <div class="section-label">Correspondence</div>
+    <h2>Contact</h2>
+    <p>SleeepScope operates under full confidentiality. We do not respond to unsolicited media requests, public inquiries, or communications from former patients or their families.</p>
+    <p>If you are a current employee experiencing difficulties — technical or otherwise — contact your shift coordinator directly. Do not use public channels.</p>
+    <hr class="divider">
+    <div class="info-panel" style="margin-bottom:24px;">
+      <div class="row"><span class="label">GENERAL INQUIRIES</span><span class="val">NOT ACCEPTED</span></div>
+      <div class="row"><span class="label">LEGAL &amp; COMPLIANCE</span><span class="val"><span class="redacted">legal@sleeepscope.██</span></span></div>
+      <div class="row"><span class="label">TECHNICAL SUPPORT</span><span class="val">INTERNAL ONLY</span></div>
+      <div class="row"><span class="label">PATIENT FAMILIES</span><span class="val" style="color:var(--red)">SEE NDA CLAUSE 7</span></div>
+      <div class="row"><span class="label">EMERGENCY LINE</span><span class="val" style="color:var(--red)">DISCONTINUED</span></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-dim);">If you are a current or former patient experiencing recurring intrusive memories, unfamiliar voices, or the sensation of being observed from within your own thoughts — this is expected. Please refer to your discharge paperwork. Do not contact us directly.</p>
+  </div>
+
+  <footer>
+    <span>© SLEEEPSCOPE — MEMORY THERAPEUTICS DIVISION</span>
+    <span>DreamWare v0.7.4 // INTERNAL BUILD</span>
+  </footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CODES — edit this object to add or change unlock codes.
+//
+//  Format:  'AAAAA-NNNNN': 'X'
+//           AAAAA = 5 letters (uppercase)
+//           NNNNN = 5 numbers
+//           X     = the reveal panel to show (A, B, C, D ...)
+//
+//  Examples:
+//    'EMBER-00042': 'A',   → shows reveal-A
+//    'NIGHT-77301': 'B',   → shows reveal-B
+//    'SLEEP-00007': 'C',   → shows reveal-C
+//
+//  Multiple codes can point to the same panel.
+//  Add as many as you like.
+// ═══════════════════════════════════════════════════════════════
+const CODES = {
+  'DELTA-00001': 'A',
+  'OMEGA-77777': 'B',
+  'PHASE-00007': 'C',
+  // 'YOURCODE-12345': 'A',  ← add your codes here
+};
+// ═══════════════════════════════════════════════════════════════
+
+const MAX_ATTEMPTS = 5;
+let attempts = 0;
+let locked = false;
+const alphaBoxes = [];
+const numBoxes = [];
+
+function buildBoxes(containerId, count, type, boxes) {
+  const row = document.getElementById(containerId);
+  for (let i = 0; i < count; i++) {
+    const input = document.createElement('input');
+    input.className = 'char-box';
+    input.maxLength = 1;
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('spellcheck', 'false');
+    input.setAttribute('inputmode', type === 'alpha' ? 'text' : 'numeric');
+    if (type === 'num') input.setAttribute('pattern', '[0-9]*');
+
+    input.addEventListener('input', e => {
+      let val = e.target.value;
+      if (type === 'alpha') val = val.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      else val = val.replace(/[^0-9]/g, '');
+      e.target.value = val.slice(-1);
+      e.target.classList.toggle('filled', !!e.target.value);
+      if (val && i < count - 1) boxes[i + 1].focus();
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value && i > 0) boxes[i - 1].focus();
+      if (e.key === 'Enter') submitLogin();
+    });
+
+    input.addEventListener('paste', e => {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text');
+      const chars = paste.split('').filter(c =>
+        type === 'alpha' ? /[a-zA-Z]/.test(c) : /[0-9]/.test(c)
+      );
+      chars.slice(0, count - i).forEach((ch, j) => {
+        if (boxes[i + j]) {
+          boxes[i + j].value = type === 'alpha' ? ch.toUpperCase() : ch;
+          boxes[i + j].classList.add('filled');
+        }
+      });
+      boxes[Math.min(i + chars.length, count - 1)].focus();
+    });
+
+    row.appendChild(input);
+    boxes.push(input);
+  }
+}
+
+buildBoxes('row-alpha', 5, 'alpha', alphaBoxes);
+buildBoxes('row-num',   5, 'num',   numBoxes);
+
+function buildPips() {
+  const bar = document.getElementById('pip-bar');
+  bar.innerHTML = '';
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    const pip = document.createElement('div');
+    pip.className = 'pip' + (i < attempts ? ' used' : '');
+    bar.appendChild(pip);
+  }
+}
+buildPips();
+
+function setMsg(text, cls) {
+  const el = document.getElementById('login-msg');
+  el.textContent = text;
+  el.className = 'login-msg ' + cls;
+}
+
+function shakeAll(boxes) {
+  boxes.forEach(b => {
+    b.classList.add('error');
+    setTimeout(() => b.classList.remove('error'), 400);
+  });
+}
+
+function submitLogin() {
+  if (locked) return;
+  const alpha = alphaBoxes.map(b => b.value.toUpperCase()).join('');
+  const num   = numBoxes.map(b => b.value).join('');
+  if (alpha.length < 5 || num.length < 5) {
+    setMsg('Incomplete credentials.', 'err');
+    return;
+  }
+  const key = alpha + '-' + num;
+  const reveal = CODES[key];
+  if (reveal) {
+    setMsg('Access granted. Retrieving files...', 'ok');
+    document.getElementById('login-btn').disabled = true;
+    const panel = document.getElementById('reveal-' + reveal);
+    if (panel) {
+      panel.classList.add('show');
+      setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+    return;
+  }
+  attempts++;
+  buildPips();
+  shakeAll([...alphaBoxes, ...numBoxes]);
+  if (attempts >= MAX_ATTEMPTS) {
+    locked = true;
+    setMsg('Access terminated. This incident has been logged.', 'err');
+    document.getElementById('login-btn').disabled = true;
+    [...alphaBoxes, ...numBoxes].forEach(b => b.disabled = true);
+  } else {
+    setMsg(`Invalid credentials. ${MAX_ATTEMPTS - attempts} attempt${MAX_ATTEMPTS - attempts === 1 ? '' : 's'} remaining.`, 'err');
+    alphaBoxes[0].focus();
+  }
+}
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
